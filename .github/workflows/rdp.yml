@@ -9,11 +9,15 @@ jobs:
 
     steps:
     - name: Setup User
-      run: |
-        net user runneradmin Password123
-        net localgroup administrators runneradmin /add || exit 0
+  run: |
+     net user runneradmin Password123
+     try {
+         net localgroup administrators runneradmin /add
+     } catch {
+        Write-Host "User already in administrators group"
+     }
 
-    - name: Enable Remote Desktop
+     - name: Enable Remote Desktop
       run: |
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -name "fDenyTSConnections" -value 0
         Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
