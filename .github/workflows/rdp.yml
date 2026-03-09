@@ -13,9 +13,9 @@ jobs:
         Expand-Archive ngrok.zip
 
     - name: Enable RDP
-      run: |
-        net user runneradmin Password123
-        net localgroup administrators runneradmin /add
+     run: |
+      net user runneradmin Password123
+       net localgroup administrators runneradmin /add || exit 0
 
     - name: Start Ngrok
       run: |
