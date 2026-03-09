@@ -1,22 +1,41 @@
-name: RDP
+name: Windows-RDP
 
 on: workflow_dispatch
 
 jobs:
   build:
     runs-on: windows-latest
+    timeout-minutes: 360
 
     steps:
+    - name: Setup User
+      run: |
+        net user runneradmin Password123
+        net localgroup administrators runneradmin /add || exit 0
+
+    - name: Enable Remote Desktop
+      run: |
+        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -name "fDenyTSConnections" -value 0
+        Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+
     - name: Download Ngrok
       run: |
         Invoke-WebRequest https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip -OutFile ngrok.zip
         Expand-Archive ngrok.zip
 
-    - name: Enable RDP
-     run: |
-      net user runneradmin Password123
-       net localgroup administrators runneradmin /add || exit 0
-
-    - name: Start Ngrok
+    - name: Add Ngrok Auth Token
       run: |
-        .\ngrok.exe tcp 3389
+        .\ngrok.exe config add-authtoken 1UZYaJe4dM4yeQmCosTyUC8Kkqb_5ij8x8rRt11iAJHTmknY4
+
+    - name: Start Ngrok Tunnel
+      run: |
+        Start-Process -NoNewWindow -FilePath ".\ngrok.exe" -ArgumentList "tcp 3389"
+
+    - name: Show RDP Info
+      run: |
+        Write-Host "===================================="
+        Write-Host "Username: runneradmin"
+        Write-Host "Password: Password123"
+        Write-Host "Check ngrok logs above for IP"
+        Write-Host "===================================="
+        Start-Sleep -Seconds 21600
